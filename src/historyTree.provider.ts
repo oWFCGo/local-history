@@ -49,13 +49,13 @@ export default class HistoryTreeProvider implements vscode.TreeDataProvider<Hist
         // Node only for settings...
         switch (this.contentKind) {
             case EHistoryTreeContentKind.All:
-                return new HistoryItem(this, 'Search: all', EHistoryTreeItem.None, null, this.currentHistoryPath);
+                return new HistoryItem(this, '搜索: 全部', EHistoryTreeItem.None, null, this.currentHistoryPath);
                 break;
             case EHistoryTreeContentKind.Current:
-                return new HistoryItem(this, 'Search: current', EHistoryTreeItem.None, null, this.currentHistoryFile);
+                return new HistoryItem(this, '搜索: 当前文件', EHistoryTreeItem.None, null, this.currentHistoryFile);
                 break;
             case EHistoryTreeContentKind.Search:
-                return new HistoryItem(this, `Search: ${this.searchPattern}`, EHistoryTreeItem.None, null, this.searchPattern);
+                return new HistoryItem(this, `搜索:  ${this.searchPattern}`, EHistoryTreeItem.None, null, this.searchPattern);
                 break;
         }
     }
@@ -195,7 +195,7 @@ export default class HistoryTreeProvider implements vscode.TreeDataProvider<Hist
                 items.push(item);
             });
         else
-            items.push(new HistoryItem(this, 'No history', EHistoryTreeItem.None));
+            items.push(new HistoryItem(this, '无历史记录', EHistoryTreeItem.None));
 
         return items;
     }
@@ -220,21 +220,21 @@ export default class HistoryTreeProvider implements vscode.TreeDataProvider<Hist
         }
 
         if (this.date.now - ref < hour)
-            return 'In the last hour'
+            return '过去一小时'
         else if (ref > this.date.today)
-            return 'Today'
+            return '今天'
         else if (ref > this.date.today - day)
-            return 'Yesterday'
+            return '昨天'
         else if (ref > this.date.week)
-            return 'This week'
+            return '本周'
         else if (ref > this.date.week - (day * 7))
-            return 'Last week'
+            return '上周'
         else if (ref > this.date.month)
-            return 'This month'
+            return '本月'
         else if (ref > this.date.lastMonth)
-            return 'Last month'
+            return '上月'
         else
-            return 'Older'
+            return '更早'
     }
 
     // private changeItemSelection(select, item) {
@@ -280,31 +280,31 @@ export default class HistoryTreeProvider implements vscode.TreeDataProvider<Hist
         let message;
         switch (this.contentKind) {
             case EHistoryTreeContentKind.All:
-                message = `Delete all history - ${this.currentHistoryPath}?`
+                message = `删除所有历史记录 - ${this.currentHistoryPath}?`
                 break;
             case EHistoryTreeContentKind.Current:
-                message = `Delete history for ${this.currentHistoryFile} ?`
+                message = `删除 ${this.currentHistoryFile} 的历史记录?`
                 break;
             case EHistoryTreeContentKind.Search:
-                message = `Delete history for ${this.searchPattern} ?`
+                message = `删除 ${this.searchPattern} 的历史记录?`
                 break;
         }
 
-        vscode.window.showInformationMessage(message, {modal: true}, {title: 'Yes'}, {title: 'No', isCloseAffordance: true})
+        vscode.window.showInformationMessage(message, {modal: true}, {title: '是'}, {title: '否', isCloseAffordance: true})
             .then(sel => {
-                if (sel.title === 'Yes') {
+                if (sel.title === '是') {
                     switch (this.contentKind) {
                         case EHistoryTreeContentKind.All:
                             // Delete all history
                             this.controller.deleteAll(this.currentHistoryPath)
                             .then(() => this.refresh())
-                            .catch(err => vscode.window.showErrorMessage(`Delete failed: ${err}`));
+                            .catch(err => vscode.window.showErrorMessage(`删除失败: ${err}`));
                             break;
                         case EHistoryTreeContentKind.Current:
                             // delete history for current file
                             this.controller.deleteHistory(this.currentHistoryFile)
                             .then(() => this.refresh())
-                            .catch(err => vscode.window.showErrorMessage(`Delete failed: ${err}`));
+                            .catch(err => vscode.window.showErrorMessage(`删除失败: ${err}`));
                             break;
                         case EHistoryTreeContentKind.Search:
                             // Delete visible history files
@@ -314,7 +314,7 @@ export default class HistoryTreeProvider implements vscode.TreeDataProvider<Hist
                                 keys.forEach(key => items.push(...this.historyFiles[key].map(item => item.file)));
                                 this.controller.deleteFiles(items)
                                     .then(() => this.refresh())
-                                    .catch(err => vscode.window.showErrorMessage(`Delete failed: ${err}`));
+                                    .catch(err => vscode.window.showErrorMessage(`删除失败: ${err}`));
                             }
                             break;
                     }
@@ -373,7 +373,7 @@ export default class HistoryTreeProvider implements vscode.TreeDataProvider<Hist
             if (this.selection)
                 this.controller.compare(element.file, this.selection.file);
             else
-                vscode.window.showErrorMessage('Select a history files to compare with');
+                vscode.window.showErrorMessage('请先选择一个历史文件进行比较');
         }
     }
 
@@ -381,7 +381,7 @@ export default class HistoryTreeProvider implements vscode.TreeDataProvider<Hist
         if (element.kind === EHistoryTreeItem.File) {
             this.controller.restore(element.file)
                 .then(() => this.refresh())
-                .catch(err => vscode.window.showErrorMessage(`Restore ${element.file.fsPath} failed. Error: ${err}`));
+                .catch(err => vscode.window.showErrorMessage(`恢复 ${element.file.fsPath} 失败，错误: ${err}`));
         }
     }
 
@@ -394,7 +394,7 @@ export default class HistoryTreeProvider implements vscode.TreeDataProvider<Hist
         this.refresh();
     }
     public forSpecificFile(): void {
-        vscode.window.showInputBox({prompt: 'Specify what to search:', value: '**/*myFile*.*', valueSelection: [4,10]})
+        vscode.window.showInputBox({prompt: '指定搜索内容:', value: '**/*myFile*.*', valueSelection: [4,10]})
             .then(value => {
                 if (value) {
                     this.searchPattern = value;
@@ -440,13 +440,13 @@ class HistoryItem extends vscode.TreeItem {
         if (provider.contentKind === EHistoryTreeContentKind.Current) {
             this.command = this.kind === EHistoryTreeItem.File ? {
                 command: 'treeLocalHistory.compareToCurrentEntry',
-                title: 'Compare with current version',
+                title: '与当前版本比较',
                 arguments: [this]
             } : undefined;
         } else {
             this.command = this.kind === EHistoryTreeItem.File ? {
                 command: 'treeLocalHistory.showEntry',
-                title: 'Open Local History',
+                title: '打开本地历史记录',
                 arguments: [file]
             } : undefined;
         }

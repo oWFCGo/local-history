@@ -7,11 +7,11 @@
         ],
 		"outDir": "out",
 		"rootDir": ".",
-		"sourceMap": true,
-		"watch": false
+		"sourceMap": true
 	},
 	"exclude": [
 		"node_modules",
 		".history"
 	]
 }
+
